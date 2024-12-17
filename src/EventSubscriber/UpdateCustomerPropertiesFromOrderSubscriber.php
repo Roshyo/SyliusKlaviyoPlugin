@@ -48,10 +48,14 @@ final class UpdateCustomerPropertiesFromOrderSubscriber implements EventSubscrib
 
         $customerProperties->firstName = $address->getFirstName();
         $customerProperties->lastName = $address->getLastName();
-        try {
-            $customerProperties->phoneNumber = (string) PhoneNumber::parse($address->getPhoneNumber(), $address->getCountryCode());
-        } catch (PhoneNumberParseException) {
+        if (null === $address->getPhoneNumber()) {
             $customerProperties->phoneNumber = null;
+        } else {
+            try {
+                $customerProperties->phoneNumber = (string) PhoneNumber::parse($address->getPhoneNumber(), $address->getCountryCode());
+            } catch (PhoneNumberParseException) {
+                $customerProperties->phoneNumber = null;
+            }
         }
         $customerProperties->location = $this->propertiesFactory->create(Location::class, $address);
     }
