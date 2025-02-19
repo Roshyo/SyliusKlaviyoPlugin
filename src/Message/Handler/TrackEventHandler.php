@@ -13,13 +13,24 @@ final class TrackEventHandler
 {
     private TrackIdentifyClientInterface $client;
 
-    public function __construct(TrackIdentifyClientInterface $client)
+    private bool $silenceExceptions;
+
+    public function __construct(TrackIdentifyClientInterface $client, bool $silenceExceptions = false)
     {
         $this->client = $client;
+        $this->silenceExceptions = $silenceExceptions;
     }
 
     public function __invoke(TrackEvent $message): void
     {
-        $this->client->trackEvent($message->getEvent());
+        try {
+            $this->client->trackEvent($message->getEvent());
+        } catch (\Throwable $exception) {
+            if ($this->silenceExceptions) {
+                return;
+            }
+
+            throw $exception;
+        }
     }
 }
