@@ -8,6 +8,8 @@ use Setono\SyliusKlaviyoPlugin\DTO\Event;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Webmozart\Assert\Assert;
+use Psr\Log\LoggerInterface;
+
 
 final class TrackIdentifyClient implements TrackIdentifyClientInterface
 {
@@ -15,12 +17,16 @@ final class TrackIdentifyClient implements TrackIdentifyClientInterface
 
     private SerializerInterface $serializer;
 
+    private LoggerInterface $logger;
+
     public function __construct(
         RestClientInterface $httpClient,
         SerializerInterface $serializer,
+        LoggerInterface $logger,
     ) {
         $this->httpClient = $httpClient;
         $this->serializer = $serializer;
+        $this->logger = $logger;
     }
 
     public function trackEvent(Event $event): void
@@ -34,6 +40,13 @@ final class TrackIdentifyClient implements TrackIdentifyClientInterface
             'data' => json_decode($json, true),
         ]);
 
-        Assert::same($response->getStatusCode(), 202);
+        if ($response->getStatusCode() !== 202) {
+            $this->logger->error('Unexpected response from Klaviyo', [
+                'status_code' => $response->getStatusCode(),
+                'response_body' => $response->getContent(false),
+            ]);
+        }
+
+        Assert::same($response->getStatusCode(), 202, '[Klaviyo] Unexpected response : ' . $response->getContent(false));
     }
 }
