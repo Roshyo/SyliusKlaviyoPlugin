@@ -19,6 +19,7 @@
                  class="Setono\SyliusKlaviyoPlugin\Client\TrackIdentifyClient">
             <argument type="service" id="setono_sylius_klaviyo.client.rest"/>
             <argument type="service" id="serializer"/>
+            <argument type="service" id="logger"/>
         </service>
     </services>
 </container>
